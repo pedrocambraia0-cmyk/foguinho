@@ -65,7 +65,27 @@ $("#chatFriend").addEventListener("change",renderMessages);
 $("#sendForm").addEventListener("submit",e=>{e.preventDefault();let f=$("#chatFriend").value,t=$("#messageText").value.trim();if(!f){alert("Escolha um amigo primeiro.");return}if(!t)return;(data.messages[f] ||= []).push({mine:true,text:t});save();$("#messageText").value="";renderMessages()});
 $("#profileForm").addEventListener("submit",e=>{e.preventDefault();let n=$("#username").value.trim();if(!/^[A-Za-z0-9_]{3,24}$/.test(n)){ $("#profileMsg").textContent="Use 3 a 24 letras, números ou _.";return}data.username=n;save();$("#profileMsg").textContent="Nome salvo neste aparelho.";refresh()});
 $("#setupBtn").addEventListener("click",()=>$("#setupPanel").classList.toggle("hidden"));
-$("#saveConfig").addEventListener("click",()=>{$("#setupMsg").textContent="As credenciais foram preenchidas apenas como rascunho visual nesta versão. Leia o LEIA-ME.txt antes de conectar o serviço online.";});
+
+$("#saveConfig").addEventListener("click",()=>{
+  const url=$("#supabaseUrl").value.trim().replace(/\/+$/,"").replace(/\/rest\/v1$/,"");
+  const key=$("#supabaseKey").value.trim();
+
+  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){
+    $("#setupMsg").textContent="Confira a URL do projeto Supabase.";
+    return;
+  }
+
+  if(!key.startsWith("sb_publishable_") && !key.startsWith("eyJ")){
+    $("#setupMsg").textContent="Confira a chave pública do Supabase.";
+    return;
+  }
+
+  localStorage.setItem("fg_supabase_url",url);
+  localStorage.setItem("fg_supabase_key",key);
+  $("#setupMsg").textContent="Configuração salva neste aparelho. Próximo passo: ativar a conexão online.";
+  $("#connection").innerHTML="<b>● Configuração salva</b><br>Conexão ainda não testada";
+});
+
 refresh();
 </script>
 </body></html>
