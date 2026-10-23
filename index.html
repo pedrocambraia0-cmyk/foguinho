@@ -67,7 +67,7 @@ $("#sendForm").addEventListener("submit",e=>{e.preventDefault();let f=$("#chatFr
 $("#profileForm").addEventListener("submit",e=>{e.preventDefault();let n=$("#username").value.trim();if(!/^[A-Za-z0-9_]{3,24}$/.test(n)){ $("#profileMsg").textContent="Use 3 a 24 letras, números ou _.";return}data.username=n;save();$("#profileMsg").textContent="Nome salvo neste aparelho.";refresh()});
 $("#setupBtn").addEventListener("click",()=>$("#setupPanel").classList.toggle("hidden"));
 
-$("#saveConfig").addEventListener("click",()=>{
+$("#saveConfig").addEventListener("click",async ()=>{
   const url=$("#supabaseUrl").value.trim().replace(/\/+$/,"").replace(/\/rest\/v1$/,"");
   const key=$("#supabaseKey").value.trim();
 
@@ -84,7 +84,23 @@ $("#saveConfig").addEventListener("click",()=>{
   localStorage.setItem("fg_supabase_url",url);
   localStorage.setItem("fg_supabase_key",key);
   $("#setupMsg").textContent="Configuração salva neste aparelho. Próximo passo: ativar a conexão online.";
-  $("#connection").innerHTML="<b>● Configuração salva</b><br>Conexão ainda não testada";
+$("#connection").innerHTML="<b>● Testando conexão...</b>";
+
+try {
+  if (!window.supabase || !window.supabase.createClient) {
+    throw new Error("Biblioteca do Supabase não carregou.");
+  }
+
+  const client = window.supabase.createClient(url, key);
+  const { error } = await client.from("profiles").select("id").limit(1);
+
+  if (error) throw error;
+
+  $("#connection").innerHTML="<b>● Conectado ao Supabase!</b><br>Leitura de perfis funcionando.";
+} catch (err) {
+  $("#connection").innerHTML="<b>● Não foi possível conectar.</b><br>Confira a chave e as políticas de acesso.";
+  console.error(err);
+}
 });
 
 refresh();
